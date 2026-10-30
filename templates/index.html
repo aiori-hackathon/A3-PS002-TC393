@@ -1,0 +1,505 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#102c45">
+  <title>PS-002 · Consent Control Center</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --ink: #142c40;
+      --navy: #102c45;
+      --blue: #285b83;
+      --teal: #0d7777;
+      --teal-soft: #e8f5f4;
+      --page: #f1f5f8;
+      --surface: #fff;
+      --line: #d8e2e9;
+      --line-strong: #c4d2dc;
+      --muted: #586c7c;
+      --quiet: #748696;
+      --green: #176a42;
+      --green-soft: #e8f5ed;
+      --red: #a43636;
+      --red-soft: #fff0ed;
+      --amber: #855812;
+      --amber-soft: #fff6e5;
+      --shadow: 0 14px 36px rgba(20, 44, 64, .075), 0 2px 8px rgba(20, 44, 64, .035);
+      --radius: 18px;
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; scroll-padding-top: 96px; }
+    body {
+      min-width: 320px;
+      margin: 0;
+      color: var(--ink);
+      background:
+        radial-gradient(ellipse at 82% 0%, rgba(13,119,119,.09), transparent 34rem),
+        linear-gradient(180deg, #f7fafc 0, var(--page) 33rem);
+      font: 15px/1.55 Inter, "Segoe UI", Arial, sans-serif;
+    }
+    a { color: inherit; }
+    button, input { font: inherit; }
+    button, a, input { -webkit-tap-highlight-color: transparent; }
+    button:focus-visible, a:focus-visible, input:focus-visible {
+      outline: 3px solid rgba(13,119,119,.35);
+      outline-offset: 3px;
+    }
+    .shell { width: min(1240px, calc(100% - 40px)); margin: 0 auto; }
+    .topbar {
+      position: sticky;
+      z-index: 10;
+      top: 0;
+      border-bottom: 1px solid rgba(196,210,220,.75);
+      background: rgba(255,255,255,.9);
+      backdrop-filter: blur(14px);
+    }
+    .topbar-inner { min-height: 68px; display: flex; align-items: center; justify-content: space-between; gap: 24px; }
+    .wordmark { display: flex; align-items: center; gap: 11px; color: var(--navy); text-decoration: none; }
+    .wordmark strong { display: block; font-size: 14px; letter-spacing: .045em; }
+    .wordmark small { display: block; color: var(--quiet); font-size: 11px; letter-spacing: .06em; text-transform: uppercase; }
+    .topnav { display: flex; align-items: center; gap: 23px; }
+    .topnav a { color: var(--muted); font-size: 13px; font-weight: 650; text-decoration: none; }
+    .topnav a:hover { color: var(--teal); }
+    .env-pill, .eyebrow, .pill, .purpose-id, .status-pill { display: inline-flex; align-items: center; gap: 7px; border-radius: 999px; font-weight: 700; }
+    .env-pill { padding: 7px 11px; color: #285c49; background: #e9f5ed; font-size: 11px; letter-spacing: .035em; text-transform: uppercase; }
+    .env-dot { width: 7px; height: 7px; border-radius: 50%; background: #34a36a; box-shadow: 0 0 0 3px rgba(52,163,106,.14); }
+    .hero { padding: 48px 0 26px; }
+    .hero-grid { display: grid; grid-template-columns: minmax(0, 1fr) 290px; align-items: end; gap: 36px; }
+    .eyebrow { margin: 0 0 12px; color: var(--teal); font-size: 11px; letter-spacing: .14em; text-transform: uppercase; }
+    .hero h1 { max-width: 760px; margin: 0; color: var(--navy); font-size: clamp(32px, 4vw, 49px); letter-spacing: -.045em; line-height: 1.08; }
+    .hero-copy { max-width: 720px; margin: 14px 0 0; color: var(--muted); font-size: 17px; }
+    .hero-note { padding: 16px 17px; border: 1px solid rgba(13,119,119,.18); border-radius: 15px; background: rgba(255,255,255,.74); box-shadow: 0 8px 25px rgba(20,44,64,.04); }
+    .hero-note strong { display: block; margin-bottom: 4px; color: var(--navy); font-size: 13px; }
+    .hero-note p { margin: 0; color: var(--muted); font-size: 12px; }
+    .journey { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; margin: 23px 0 27px; }
+    .journey-step { position: relative; display: flex; align-items: center; gap: 10px; min-height: 54px; padding: 9px 13px; border: 1px solid var(--line); border-radius: 13px; background: rgba(255,255,255,.75); color: var(--muted); font-size: 12px; font-weight: 650; }
+    .journey-number { flex: 0 0 25px; height: 25px; display: grid; place-items: center; border-radius: 50%; color: var(--teal); background: var(--teal-soft); font-size: 11px; font-weight: 800; }
+    .main-grid { display: grid; grid-template-columns: minmax(0, 1fr) 270px; align-items: start; gap: 23px; padding-bottom: 50px; }
+    .content-column { min-width: 0; }
+    .side-column { position: sticky; top: 90px; display: grid; gap: 15px; }
+    .surface { border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); box-shadow: var(--shadow); }
+    .section-heading { display: flex; align-items: end; justify-content: space-between; gap: 16px; margin: 30px 0 13px; }
+    .section-heading h2 { margin: 0; color: var(--navy); font-size: 22px; letter-spacing: -.025em; }
+    .section-heading p { margin: 4px 0 0; color: var(--muted); font-size: 13px; }
+    .section-kicker { margin-bottom: 5px; color: var(--teal); font-size: 10px; font-weight: 800; letter-spacing: .13em; text-transform: uppercase; }
+    .subject-panel { padding: 20px; border-top: 3px solid var(--teal); }
+    .subject-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 20px; }
+    .subject-top h2 { margin: 0; color: var(--navy); font-size: 18px; }
+    .subject-top p { margin: 4px 0 0; color: var(--muted); font-size: 13px; }
+    .subject-form { display: flex; flex-wrap: wrap; align-items: end; gap: 10px; margin-top: 17px; }
+    .field-group { flex: 1 1 250px; max-width: 420px; }
+    label { display: block; margin-bottom: 6px; color: var(--ink); font-size: 12px; font-weight: 750; }
+    input[type="text"], input[type="search"] { width: 100%; min-height: 43px; padding: 10px 12px; border: 1px solid var(--line-strong); border-radius: 10px; color: var(--ink); background: #fff; }
+    input::placeholder { color: #8796a2; }
+    .button, button, .button-link { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 41px; padding: 9px 14px; border: 1px solid transparent; border-radius: 10px; color: #fff; background: var(--navy); font-size: 13px; font-weight: 700; line-height: 1.25; text-decoration: none; cursor: pointer; transition: transform .16s ease, box-shadow .16s ease, background .16s ease, border-color .16s ease; }
+    .button:hover, button:hover, .button-link:hover { transform: translateY(-1px); background: #1c496b; box-shadow: 0 7px 16px rgba(16,44,69,.15); }
+    button:disabled { opacity: .62; cursor: wait; transform: none; }
+    .button.secondary, .button-link.secondary { border-color: var(--line-strong); color: var(--navy); background: #fff; }
+    .button.secondary:hover, .button-link.secondary:hover { border-color: #91a9b8; background: #f7fafb; }
+    .button.teal, button.teal { background: var(--teal); }
+    .button.teal:hover, button.teal:hover { background: #096466; }
+    button.refuse { border-color: #e2e6ea; color: #53616b; background: #f2f4f6; }
+    button.refuse:hover { background: #e6eaed; box-shadow: none; }
+    button.withdraw { background: var(--red); }
+    button.withdraw:hover { background: #842929; }
+    button.notice-change { border-color: #d6c7e8; color: #614684; background: #faf7ff; }
+    button.notice-change:hover { background: #f0e8fb; box-shadow: none; }
+    .export-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 15px; padding-top: 14px; border-top: 1px solid #edf1f4; }
+    .export-actions .button-link { min-height: 36px; padding: 7px 11px; font-size: 12px; }
+    .message { display: flex; align-items: flex-start; gap: 10px; margin: 14px 0; padding: 12px 15px; border: 1px solid transparent; border-radius: 12px; font-size: 13px; }
+    .message::before { content: "•"; font-size: 19px; line-height: 1; }
+    .message.success { border-color: #cbe8d3; color: #155d32; background: var(--green-soft); }
+    .message.error { border-color: #f0d1cb; color: #8b241c; background: var(--red-soft); }
+    .purpose-list { display: grid; gap: 15px; }
+    .purpose-card { position: relative; overflow: hidden; padding: 21px; border: 1px solid var(--line); border-radius: var(--radius); background: #fff; box-shadow: var(--shadow); }
+    .purpose-card::before { position: absolute; top: 0; left: 0; width: 4px; height: 100%; background: linear-gradient(180deg, var(--teal), #73b8b2); content: ""; }
+    .purpose-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; }
+    .purpose-title { min-width: 0; }
+    .purpose-title h3 { margin: 0; color: var(--navy); font-size: 19px; letter-spacing: -.02em; }
+    .purpose-title p { margin: 6px 0 0; color: var(--muted); }
+    .purpose-id { flex: 0 0 auto; padding: 6px 9px; color: #486276; background: #f0f4f7; font: 11px/1.25 ui-monospace, SFMono-Regular, Consolas, monospace; }
+    .notice-box { margin: 17px 0 14px; padding: 14px 15px; border: 1px solid #e2ecee; border-left: 3px solid var(--teal); border-radius: 11px; background: linear-gradient(100deg, #f5faf9, #fbfdfd); }
+    .notice-label { display: block; margin-bottom: 5px; color: var(--teal); font-size: 10px; font-weight: 800; letter-spacing: .11em; text-transform: uppercase; }
+    .notice-text { margin: 0; color: #3d5667; font-size: 13px; white-space: pre-line; }
+    .purpose-meta { display: flex; flex-wrap: wrap; gap: 8px; margin: 13px 0 0; }
+    .pill { padding: 5px 9px; color: #516879; background: #f3f6f8; font-size: 11px; }
+    .data-items { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-top: 13px; }
+    .data-items-label { margin-right: 2px; color: var(--muted); font-size: 11px; font-weight: 700; }
+    .data-chip { padding: 4px 8px; border: 1px solid #e5ebef; border-radius: 7px; color: #506675; background: #fafcfd; font-size: 11px; }
+    .state-bar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; margin: 17px 0 12px; padding: 11px 13px; border: 1px solid #e9eef1; border-radius: 11px; background: #fafcfd; }
+    .state-label { color: var(--muted); font-size: 12px; }
+    .state-result { display: flex; align-items: center; gap: 8px; }
+    .status-pill { padding: 5px 9px; font-size: 11px; letter-spacing: .02em; }
+    .status-pill.allow { color: var(--green); background: var(--green-soft); }
+    .status-pill.deny { color: var(--red); background: var(--red-soft); }
+    .decision { color: var(--ink); font-size: 11px; font-weight: 800; letter-spacing: .07em; }
+    .consent-actions, .controls { display: flex; flex-wrap: wrap; align-items: center; gap: 7px; }
+    .consent-actions button, .controls button { margin: 0; }
+    .controls { margin-top: 12px; padding-top: 12px; border-top: 1px solid #edf1f4; }
+    .controls-label { width: 100%; margin-bottom: 1px; color: var(--quiet); font-size: 10px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; }
+    .api-result { min-height: 43px; margin-top: 11px; padding: 11px 13px; border: 1px dashed var(--line-strong); border-radius: 10px; color: var(--muted); background: #f8fafb; font: 12px/1.5 ui-monospace, SFMono-Regular, Consolas, monospace; white-space: pre-wrap; overflow-wrap: anywhere; }
+    .api-result.allow { border-style: solid; border-color: #c7e4d1; color: var(--green); background: var(--green-soft); }
+    .api-result.deny { border-style: solid; border-color: #eed0ca; color: var(--red); background: var(--red-soft); }
+    details { margin-top: 12px; }
+    summary { color: var(--blue); font-size: 12px; font-weight: 700; cursor: pointer; }
+    .hash { display: block; margin-top: 7px; padding: 9px 10px; border-radius: 8px; color: #526b7c; background: #f3f6f8; font: 10px/1.5 ui-monospace, SFMono-Regular, Consolas, monospace; overflow-wrap: anywhere; }
+    .side-card { padding: 17px; }
+    .side-card h3 { margin: 0; color: var(--navy); font-size: 14px; }
+    .side-card > p { margin: 6px 0 0; color: var(--muted); font-size: 12px; }
+    .checklist { display: grid; gap: 14px; margin: 16px 0 0; padding: 0; list-style: none; }
+    .checklist li { display: grid; grid-template-columns: 27px 1fr; gap: 9px; align-items: start; color: var(--muted); font-size: 12px; }
+    .check-number { width: 25px; height: 25px; display: grid; place-items: center; border: 1px solid #cfe2e1; border-radius: 8px; color: var(--teal); background: var(--teal-soft); font-size: 10px; font-weight: 800; }
+    .checklist strong { display: block; margin-bottom: 1px; color: var(--ink); font-size: 12px; }
+    .guardrail { border-color: #eadfc5; background: linear-gradient(145deg, #fffdf7, #fff); }
+    .guardrail h3 { display: flex; align-items: center; gap: 8px; }
+    .guardrail-mark { width: 22px; height: 22px; display: grid; place-items: center; border-radius: 7px; color: var(--amber); background: var(--amber-soft); font-size: 12px; }
+    .audit-panel { overflow: hidden; }
+    .audit-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 14px; padding: 17px 18px; border-bottom: 1px solid var(--line); }
+    .audit-toolbar p { margin: 0; color: var(--muted); font-size: 12px; }
+    .search-wrap { width: min(240px, 48%); }
+    .search-wrap input { min-height: 37px; font-size: 12px; }
+    .table-wrap { overflow: auto; }
+    table { width: 100%; border-collapse: collapse; font-size: 12px; }
+    th, td { padding: 11px 12px; border-bottom: 1px solid #e9eef2; text-align: left; vertical-align: top; }
+    th { position: sticky; top: 0; color: #42596b; background: #f4f7f9; font-size: 10px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; white-space: nowrap; }
+    tbody tr:hover { background: #fafcfd; }
+    td { color: #435b6b; }
+    td code { font: 10px/1.45 ui-monospace, SFMono-Regular, Consolas, monospace; overflow-wrap: anywhere; }
+    .empty-state { margin: 0; padding: 27px 20px; color: var(--muted); text-align: center; font-size: 13px; }
+    .api-panel { padding: 18px; }
+    .api-panel h3 { margin: 0; color: var(--navy); font-size: 14px; }
+    .api-panel p { color: var(--muted); font-size: 12px; }
+    .api-path { display: block; padding: 11px 12px; border: 1px solid #e4ebef; border-radius: 9px; color: #31566c; background: #f6f9fa; font: 11px/1.5 ui-monospace, SFMono-Regular, Consolas, monospace; overflow-wrap: anywhere; }
+    .api-path + p { margin-bottom: 0; }
+    .footer { padding: 20px 0 30px; border-top: 1px solid var(--line); color: var(--quiet); font-size: 11px; }
+    .footer-inner { display: flex; justify-content: space-between; gap: 16px; }
+    .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
+    @media (max-width: 900px) {
+      .main-grid { grid-template-columns: minmax(0, 1fr) 240px; gap: 16px; }
+      .hero-grid { grid-template-columns: minmax(0, 1fr) 250px; gap: 22px; }
+      .journey-step { padding: 8px; font-size: 11px; }
+    }
+    @media (max-width: 720px) {
+      .shell { width: min(100% - 28px, 600px); }
+      .topbar-inner { min-height: 60px; }
+      .topnav { display: none; }
+      .hero { padding-top: 33px; }
+      .hero-grid, .main-grid { grid-template-columns: 1fr; }
+      .hero-note { max-width: 500px; }
+      .journey { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .side-column { position: static; grid-row: 1; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .section-heading { margin-top: 25px; }
+      .subject-panel, .purpose-card { padding: 17px; }
+      .purpose-header { display: block; }
+      .purpose-id { margin-top: 10px; }
+    }
+    @media (max-width: 480px) {
+      .shell { width: calc(100% - 22px); }
+      .hero h1 { font-size: 34px; }
+      .hero-copy { font-size: 15px; }
+      .journey { gap: 7px; }
+      .journey-step { min-height: 49px; font-size: 10px; }
+      .side-column { grid-template-columns: 1fr; }
+      .subject-top { display: block; }
+      .env-pill { margin-top: 8px; }
+      .state-bar { align-items: flex-start; flex-direction: column; }
+      .consent-actions button, .controls button { flex: 1 1 auto; }
+      .audit-toolbar { align-items: stretch; flex-direction: column; }
+      .search-wrap { width: 100%; }
+      .footer-inner { flex-direction: column; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; }
+    }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="shell topbar-inner">
+      <a class="wordmark" href="#top" aria-label="Consent Gate home">
+        <span><strong>CONSENT GATE</strong><small>Purpose-based prototype</small></span>
+      </a>
+      <nav class="topnav" aria-label="Page sections">
+        <a href="#overview">Overview</a>
+        <a href="#purposes">Purpose choices</a>
+        <a href="#audit">Audit history</a>
+        <a href="#api">API details</a>
+      </nav>
+      <span class="env-pill"><span class="env-dot" aria-hidden="true"></span>Local demo</span>
+    </div>
+  </header>
+
+  <div id="top" class="shell">
+    <section class="hero" aria-labelledby="page-title">
+      <div class="hero-grid">
+        <div>
+          <p class="eyebrow">PS-002 · Consent recording and withdrawal</p>
+          <h1 id="page-title">Consent, made clear.</h1>
+          <p class="hero-copy">A purpose-by-purpose control center that records a person’s choice and checks it before a synthetic data request is allowed.</p>
+        </div>
+        <aside class="hero-note" aria-label="Prototype scope">
+          <strong>Prototype environment</strong>
+          <p>Use invented subject IDs and synthetic records only. This demo does not authenticate people or handle real personal data.</p>
+        </aside>
+      </div>
+      <div class="journey" aria-label="Consent demonstration steps">
+        <div class="journey-step"><span class="journey-number">01</span><span>Choose a demo subject</span></div>
+        <div class="journey-step"><span class="journey-number">02</span><span>Review each purpose</span></div>
+        <div class="journey-step"><span class="journey-number">03</span><span>Record or withdraw</span></div>
+        <div class="journey-step"><span class="journey-number">04</span><span>Check the data gate</span></div>
+      </div>
+    </section>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% for category, message in messages %}
+        <div class="message {{ category }}" role="status">{{ message }}</div>
+      {% endfor %}
+    {% endwith %}
+
+    <div class="main-grid">
+      <main class="content-column">
+        <section id="overview" class="surface subject-panel" aria-labelledby="subject-heading">
+          <div class="subject-top">
+            <div>
+              <p class="section-kicker">Session overview</p>
+              <h2 id="subject-heading">Demo subject</h2>
+              <p>Each subject has an independent consent and audit history.</p>
+            </div>
+          </div>
+          <form class="subject-form" method="get" action="{{ url_for('home') }}">
+            <div class="field-group">
+              <label for="subject_id">Synthetic subject ID</label>
+              <input id="subject_id" name="subject_id" type="text" value="{{ subject_id }}" maxlength="64" pattern="[A-Za-z0-9_-]+" autocomplete="off" required>
+            </div>
+            <button class="button teal" type="submit">Load subject <span aria-hidden="true">→</span></button>
+          </form>
+          <div class="export-actions" aria-label="Audit export downloads">
+            <a class="button-link secondary" href="{{ url_for('audit_export', format='csv') }}">↓ Export audit CSV</a>
+            <a class="button-link secondary" href="{{ url_for('audit_export', format='json') }}">↓ Export audit JSON</a>
+          </div>
+        </section>
+
+        <section id="purposes" aria-labelledby="purpose-heading">
+          <div class="section-heading">
+            <div>
+              <p class="section-kicker">Itemized choices</p>
+              <h2 id="purpose-heading">Purpose choices</h2>
+              <p>Each purpose has its own notice, status, and decision.</p>
+            </div>
+          </div>
+          <div class="purpose-list">
+            {% for purpose in purposes %}
+              <article class="purpose-card" aria-labelledby="purpose-{{ purpose.purpose_id }}">
+                <div class="purpose-header">
+                  <div class="purpose-title">
+                    <h3 id="purpose-{{ purpose.purpose_id }}">{{ purpose.name }}</h3>
+                    <p>{{ purpose.description }}</p>
+                  </div>
+                  <span class="purpose-id">{{ purpose.purpose_id }}</span>
+                </div>
+
+                <div class="notice-box">
+                  <span class="notice-label">Purpose notice · version {{ purpose.notice_version }}</span>
+                  <p class="notice-text">{{ purpose.notice_text }}</p>
+                </div>
+
+                <div class="purpose-meta">
+                  <span class="pill">Notice version {{ purpose.notice_version }}</span>
+                  <span class="pill">Choice recorded per purpose</span>
+                </div>
+                <div class="data-items" aria-label="Synthetic data items">
+                  <span class="data-items-label">Data used in this demo:</span>
+                  {% for item in purpose.data_items %}<span class="data-chip">{{ item }}</span>{% endfor %}
+                </div>
+
+                <div class="state-bar">
+                  <span class="state-label">Current consent state</span>
+                  <span class="state-result">
+                    {% if purpose.current.decision == 'ALLOW' %}
+                      <span class="status-pill allow">{{ purpose.current.status }}</span>
+                    {% else %}
+                      <span class="status-pill deny">{{ purpose.current.status }}</span>
+                    {% endif %}
+                    <span class="decision">{{ purpose.current.decision }}</span>
+                  </span>
+                </div>
+
+                <form class="consent-actions" method="post" action="{{ url_for('save_consent') }}" aria-label="Record consent choice for {{ purpose.name }}">
+                  <input type="hidden" name="subject_id" value="{{ subject_id }}">
+                  <input type="hidden" name="purpose_id" value="{{ purpose.purpose_id }}">
+                  <button type="submit" name="action" value="GRANTED">✓ Grant</button>
+                  <button class="refuse" type="submit" name="action" value="REFUSED">Refuse</button>
+                  <button class="withdraw" type="submit" name="action" value="WITHDRAWN">Withdraw</button>
+                </form>
+
+                <div class="controls" aria-label="Data gate demonstration controls">
+                  <span class="controls-label">Try the enforcement check</span>
+                  <button class="share-button teal" type="button" data-purpose="{{ purpose.purpose_id }}" data-fields='{{ purpose.allowed_fields | tojson }}'>Request synthetic data</button>
+                  <button class="notice-change" type="button" data-purpose="{{ purpose.purpose_id }}">Simulate notice change</button>
+                </div>
+                <div class="api-result" id="result-{{ purpose.purpose_id }}" role="status" aria-live="polite">The data gate result will appear here.</div>
+                <details>
+                  <summary>View purpose ID and notice hash</summary>
+                  <code class="hash">Purpose ID: {{ purpose.purpose_id }}<br>SHA-256: {{ purpose.notice_hash }}</code>
+                </details>
+              </article>
+            {% endfor %}
+          </div>
+        </section>
+
+        <section id="audit" aria-labelledby="audit-heading">
+          <div class="section-heading">
+            <div>
+              <p class="section-kicker">Traceable changes</p>
+              <h2 id="audit-heading">Recent audit history</h2>
+              <p>Recorded decisions and data-access checks for this demo subject.</p>
+            </div>
+          </div>
+          <div class="surface audit-panel">
+            {% if history %}
+              <div class="audit-toolbar">
+                <p>Newest events appear first · timestamps are UTC</p>
+                <div class="search-wrap"><label class="sr-only" for="audit-search">Filter audit events</label><input id="audit-search" type="search" placeholder="Filter events…" autocomplete="off"></div>
+              </div>
+              <div class="table-wrap">
+                <table id="audit-table">
+                  <thead><tr><th>Audit ID</th><th>Event</th><th>Purpose</th><th>Action</th><th>Decision</th><th>Recorded at (UTC)</th><th>Notice</th></tr></thead>
+                  <tbody>
+                    {% for event in history %}
+                      <tr>
+                        <td>{{ event.audit_id }}</td>
+                        <td>{{ event.event_type }}</td>
+                        <td>{{ event.purpose_name or event.purpose_id or '—' }}</td>
+                        <td>{{ event.action or '—' }}</td>
+                        <td>{{ event.decision or '—' }}</td>
+                        <td>{{ event.occurred_at }}</td>
+                        <td>{{ event.notice_version or '—' }}<br><code>{{ event.notice_hash or '—' }}</code></td>
+                      </tr>
+                    {% endfor %}
+                  </tbody>
+                </table>
+                <p id="audit-empty" class="empty-state" hidden>No audit events match that filter.</p>
+              </div>
+            {% else %}
+              <p class="empty-state">No events yet for this subject. Record a choice or try a data request to start the audit trail.</p>
+            {% endif %}
+          </div>
+        </section>
+
+        <section id="api" aria-labelledby="api-heading">
+          <div class="section-heading">
+            <div>
+              <p class="section-kicker">For the demo walkthrough</p>
+              <h2 id="api-heading">Mock API</h2>
+              <p>The relying service checks current consent at request time.</p>
+            </div>
+          </div>
+          <div class="surface api-panel">
+            <h3>Consent status for this subject</h3>
+            <p>Use the status endpoint to inspect one purpose’s current decision.</p>
+            <code class="api-path">/api/v1/consent/status?subject_id={{ subject_id }}&amp;purpose_id=service_analytics</code>
+            <p>The data-sharing endpoint accepts a subject ID, purpose ID, and requested fields. It checks the latest consent and notice version before returning any synthetic data.</p>
+            <details>
+              <summary>Show local API routes</summary>
+              <p><code>POST /api/v1/data/share</code><br><code>GET /api/v1/audit/export?format=csv</code><br><code>GET /api/v1/audit/export?format=json</code></p>
+            </details>
+          </div>
+        </section>
+      </main>
+
+      <aside class="side-column" aria-label="Demo guide">
+        <section class="surface side-card">
+          <p class="section-kicker">Walkthrough</p>
+          <h3>Show the consent lifecycle</h3>
+          <p>Follow this short sequence during your presentation.</p>
+          <ol class="checklist">
+            <li><span class="check-number">1</span><span><strong>Grant a purpose</strong>Record a clear choice for one purpose.</span></li>
+            <li><span class="check-number">2</span><span><strong>Check access</strong>Request synthetic data and observe ALLOW.</span></li>
+            <li><span class="check-number">3</span><span><strong>Withdraw consent</strong>Withdraw for that purpose.</span></li>
+            <li><span class="check-number">4</span><span><strong>Check again</strong>The next request should be denied.</span></li>
+            <li><span class="check-number">5</span><span><strong>Change the notice</strong>Show that the old grant needs a fresh choice.</span></li>
+          </ol>
+        </section>
+        <section class="surface side-card guardrail">
+          <h3><span class="guardrail-mark" aria-hidden="true">!</span>Demo data reminder</h3>
+          <p>Use only invented IDs and synthetic records. Do not enter Aadhaar, PAN, banking, contact, or other real personal details.</p>
+        </section>
+      </aside>
+    </div>
+  </div>
+
+  <footer class="footer">
+    <div class="shell footer-inner"><span>PS-002 · Purpose-Based Consent Recording and Withdrawal Prototype</span><span>Local educational demo · No real personal data</span></div>
+  </footer>
+
+  <script>
+    const subjectId = {{ subject_id | tojson }};
+
+    document.querySelectorAll('.share-button').forEach((button) => {
+      button.addEventListener('click', async () => {
+        const purposeId = button.dataset.purpose;
+        const resultBox = document.getElementById(`result-${purposeId}`);
+        const fields = JSON.parse(button.dataset.fields);
+        button.disabled = true;
+        resultBox.className = 'api-result';
+        resultBox.textContent = 'Checking current consent…';
+        try {
+          const response = await fetch('/api/v1/data/share', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ subject_id: subjectId, purpose_id: purposeId, fields })
+          });
+          const payload = await response.json();
+          resultBox.classList.add(payload.decision === 'ALLOW' ? 'allow' : 'deny');
+          resultBox.textContent = JSON.stringify(payload, null, 2);
+          window.location.hash = `result-${purposeId}`;
+        } catch (error) {
+          resultBox.classList.add('deny');
+          resultBox.textContent = 'The local API could not be reached. Keep the Flask server running and retry.';
+        } finally {
+          button.disabled = false;
+        }
+      });
+    });
+
+    document.querySelectorAll('.notice-change').forEach((button) => {
+      button.addEventListener('click', async () => {
+        const purposeId = button.dataset.purpose;
+        if (!window.confirm('Create a new demo notice version? A previous grant for this purpose will require fresh consent.')) return;
+        button.disabled = true;
+        try {
+          const response = await fetch(`/api/v1/demo/notices/${encodeURIComponent(purposeId)}/change`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ subject_id: subjectId })
+          });
+          const payload = await response.json();
+          if (!response.ok) throw new Error(payload.error || 'Notice update failed.');
+          window.location.search = `?subject_id=${encodeURIComponent(subjectId)}`;
+        } catch (error) {
+          alert(error.message);
+          button.disabled = false;
+        }
+      });
+    });
+
+    const auditSearch = document.getElementById('audit-search');
+    if (auditSearch) {
+      auditSearch.addEventListener('input', () => {
+        const query = auditSearch.value.trim().toLowerCase();
+        const rows = [...document.querySelectorAll('#audit-table tbody tr')];
+        let visible = 0;
+        rows.forEach((row) => {
+          const match = row.textContent.toLowerCase().includes(query);
+          row.hidden = !match;
+          if (match) visible += 1;
+        });
+        const empty = document.getElementById('audit-empty');
+        if (empty) empty.hidden = visible !== 0;
+      });
+    }
+  </script>
+</body>
+</html>
